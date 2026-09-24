@@ -1,108 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:starter_flutter/models/weather_response.dart';
+import 'package:starter_flutter/services/weather_service.dart';
 
-void main() {
+void main(){
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FHTW CPD — Flutter Starter',
+      title: 'Hunde Runde',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
-      home: const CounterScreen(),
+      home: const StartScreen(),
     );
   }
 }
 
-class CounterScreen extends StatefulWidget {
-  const CounterScreen({super.key});
+class StartScreen extends StatefulWidget {
+  const StartScreen({super.key});
 
   @override
-  State<CounterScreen> createState() => _CounterScreenState();
+  State<StartScreen> createState() => _StartScreen();
 }
 
-class _CounterScreenState extends State<CounterScreen> {
-  int _counter = 0;
-  String? _lastUpdated;
+class _StartScreen extends State<StartScreen> {
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-      final now = DateTime.now();
-      _lastUpdated =
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-    });
+  WeatherResponse? _weather;
+   @override
+    void initState(){
+      super.initState();
+      _loadWeather();
   }
+  Future<void> _loadWeather() async {
+  final weather = await WeatherService.getWeather();
+
+  setState(() {
+    _weather = weather;
+  });
+}
 
   @override
   Widget build(BuildContext context) {
+    final nextTemperatures = _weather?.minutely15.entries.take(4).toList() ?? List.empty();
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
       body: Center(
-        child: Container(
-          width: 320,
-          padding: const EdgeInsets.all(24.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'FHTW CPD — Flutter Starter',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Count: $_counter',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2563EB),
-                ),
-              ),
-              if (_lastUpdated != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Last update: $_lastUpdated',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
+        child:Card(
+          margin: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Aktuelles Wetter',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  '${_weather?.current.temperature.toStringAsFixed(1)} °C',
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Niederschlag: ${_weather?.current.precipitation} mm',
+                ),
+
+                Text(
+                  'Luftfeuchtigkeit: ${_weather?.current.humidity} %',
+                ),
+
+                const SizedBox(height: 20),
+
+                const Text(
+                  'Nächste 60 Minuten',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                      for(final entry in nextTemperatures)
+                        Column(
+                          children: [
+                            Text(
+                              entry.key.substring(11, 16),
+                              style: const TextStyle(
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              '${entry.value.temperature.toStringAsFixed(1)} °C - ${entry.value.precipitation}%',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                  ],
                 ),
               ],
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _incrementCounter,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Increment Counter'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
