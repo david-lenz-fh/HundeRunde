@@ -1,7 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-class DatabaseService {
+class HundeRundeDB {
   static Database? _database;
 
   static Future<Database> get database async {
