@@ -1,11 +1,11 @@
 class Dog{
   int id;
   String name;
-
+  
   Dog(this.id, this.name);
 }
 
-class Walk{
+class DogWalk{
   int id;
   int dogId;
   DateTime startedAt;
@@ -14,8 +14,6 @@ class Walk{
   String routePolyline;
   String comment;
 
-  Walk(this.id, this.dogId, this.startedAt, this.endedAt, 
+  DogWalk(this.id, this.dogId, this.startedAt, this.endedAt, 
   this.distanceInM, this.routePolyline, this.comment);
-
-  
 }

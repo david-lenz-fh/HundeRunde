@@ -7,10 +7,14 @@ import '../models/weather_response.dart';
 
 class WeatherService {
   static const String weatherKey = 'weather_data';
+  static const String weatherTimeKey = 'weather_timestamp';
 
-  static Future<WeatherResponse> getWeather() async {
+  static Future<WeatherResponse> getWeather({bool forceRefresh=false}) async {
+      if(forceRefresh){        
+        return await _fetchWeather();
+      }
+
       final saved = await _getSavedWeather();
-
       if (saved != null) {
         return saved;
       }
@@ -27,9 +31,9 @@ class WeatherService {
       throw Exception('Weather API request failed');
     }
 
-    final api_json = jsonDecode(response.body);
+    final apiJson = jsonDecode(response.body);
 
-    final weather = WeatherResponse.fromAPIJson(api_json);
+    final weather = WeatherResponse.fromAPIJson(apiJson);
 
     final prefs = await SharedPreferences.getInstance();
 
@@ -37,21 +41,31 @@ class WeatherService {
       weatherKey,
       jsonEncode(weather.toInternalJson()),
     );
+    await prefs.setString(
+      weatherTimeKey, 
+      DateTime.now().toIso8601String()
+    );
 
     return weather;
   }
 
+
   static Future<WeatherResponse?> _getSavedWeather() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final weatherString = prefs.getString(weatherKey);
+    final weatherDataString = prefs.getString(weatherKey);
+    final weatherTimeString = prefs.getString(weatherTimeKey);
 
-    if (weatherString == null) {
+    if (weatherDataString == null || weatherTimeString == null) {
       return null;
     }
 
+    final difference = DateTime.now().difference(DateTime.parse(weatherTimeString));
+    if (difference.inMinutes >= 15) {
+      return null;
+    }
     return WeatherResponse.fromInternalJson(
-      jsonDecode(weatherString),
+      jsonDecode(weatherDataString),
     );
   }
 }
