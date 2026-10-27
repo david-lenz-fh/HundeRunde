@@ -1,8 +1,17 @@
+import 'package:uuid/uuid.dart';
+
 class Dog{
-  int id;
+  Uuid id;
   String name;
-  
   Dog(this.id, this.name);
+}
+
+class User{
+  int id;
+  String username;
+  String? profilePictureBase64;
+
+  User(this.id, this.username, this.profilePictureBase64);
 }
 
 class DogWalk{

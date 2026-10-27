@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:starter_flutter/controllers/dogwalk_controller.dart';
 import 'package:starter_flutter/controllers/dogwalk_recorder.dart';
 import 'package:starter_flutter/controllers/weather_controller.dart';
-import 'package:starter_flutter/screens/CheckInScreen.dart';
+import 'package:starter_flutter/screens/check_in_screen.dart';
 import 'package:starter_flutter/screens/main_screen.dart';
 
 void main() async{
