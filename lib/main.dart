@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:starter_flutter/controllers/dogwalk_controller.dart';
 import 'package:starter_flutter/controllers/dogwalk_recorder.dart';
+import 'package:starter_flutter/controllers/location_controller.dart';
 import 'package:starter_flutter/controllers/weather_controller.dart';
 import 'package:starter_flutter/screens/check_in_screen.dart';
 import 'package:starter_flutter/screens/main_screen.dart';
@@ -26,7 +27,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => WeatherController(),
+          create: (context) => LocationController(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => WeatherController(context.read<LocationController>()),
         ),
         
         ChangeNotifierProvider(

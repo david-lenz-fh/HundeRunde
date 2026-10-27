@@ -2,17 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:starter_flutter/services/dogwalk_service.dart';
 import 'package:starter_flutter/services/location_service.dart';
 
 class DogWalkRecorder extends ChangeNotifier {
   
   static final DogWalkRecorder _instance = DogWalkRecorder._internal();
   factory DogWalkRecorder() => _instance;
+  
   DogWalkRecorder._internal();
 
   bool _isWalking = false;
+  Future<String>? currentWalkId;
   int _secondsElapsed = 0;
   double _distanceInM = 0.0;
+  DogWalkService dogWalkService = DogWalkService();
 
   Timer? _timer;
   DateTime? _startTime;
@@ -26,9 +30,6 @@ class DogWalkRecorder extends ChangeNotifier {
   int get distance => _distanceInM.toInt();
   List<LatLng> get routeCoordinates => _routeCoordinates;
   
-  LatLng? _initialLocation; 
-  LatLng? get initialLocation => _initialLocation;
-  DateTime? _lastFetchTime;
 
 
   String get durationText {
@@ -41,28 +42,7 @@ class DogWalkRecorder extends ChangeNotifier {
 
   String get distanceText => '${_distanceInM.toInt()} m';
 
-  Future<void> fetchInitialLocation() async {
-
-    if (_isWalking) return;
-    if (_lastFetchTime != null) {
-      if (DateTime.now().difference(_lastFetchTime!).inSeconds < 60) {
-        return;
-      }
-    }
-
-    _lastFetchTime = DateTime.now();
-    final pos = await LocationService.getCurrentLocation();
-    
-    if (pos != null) {
-      _initialLocation = LatLng(pos.latitude, pos.longitude);
-      _lastFetchTime = DateTime.now();
-    }
-    else{      
-      _lastFetchTime = null;
-    }
-    
-    notifyListeners(); 
-  }
+  
 
   void toggleWalk() {
     if (_isWalking) {
@@ -73,11 +53,13 @@ class DogWalkRecorder extends ChangeNotifier {
   }
 
   Future<void> startWalk() async {
-    final hasPermission = await LocationService.checkAndRequestPermissions();
-    if (!hasPermission) {
-      return;
-    }
 
+    //zur Sicherheit
+    stopWalk();
+
+    final hasPermission = await LocationService.checkAndRequestPermissions();
+    
+    currentWalkId = dogWalkService.startWalk("a");
     _isWalking = true;
     _secondsElapsed = 0;
     _distanceInM = 0.0;
@@ -89,7 +71,12 @@ class DogWalkRecorder extends ChangeNotifier {
       _secondsElapsed++;
       notifyListeners(); 
     });
+    
 
+
+    if (!hasPermission) {
+      return;
+    }
     _positionStream = LocationService.getLiveLocationStream().listen((Position newPosition) {
     _routeCoordinates.add(LatLng(newPosition.latitude, newPosition.longitude));
 
@@ -104,10 +91,19 @@ class DogWalkRecorder extends ChangeNotifier {
     notifyListeners();
   }
 
-  void stopWalk() {
+  void stopWalk() async{
     _timer?.cancel();
     _positionStream?.cancel();
     _isWalking = false;
+
+    final walkId=await currentWalkId;
+    if(walkId!=null){
+      saveWalk(walkId);
+    }
     notifyListeners();
+  }
+
+  void saveWalk(String walkId){
+    dogWalkService.finishWalk(walkId);
   }
 }

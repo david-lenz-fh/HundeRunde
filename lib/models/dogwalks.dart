@@ -1,28 +1,25 @@
-import 'package:uuid/uuid.dart';
-
 class Dog{
-  Uuid id;
+  String id;
   String name;
-  Dog(this.id, this.name);
+  
+  Dog({required this.id, required this.name});
 }
-
-class User{
-  int id;
-  String username;
-  String? profilePictureBase64;
-
-  User(this.id, this.username, this.profilePictureBase64);
-}
-
-class DogWalk{
-  int id;
-  int dogId;
+class DogWalk {
+  String id;
+  String dogId;
   DateTime startedAt;
-  DateTime endedAt;
-  int distanceInM;
-  String routePolyline;
-  String comment;
+  DateTime? endedAt;
+  double distanceInM;
+  String? routePolyline;
+  String? comment;
 
-  DogWalk(this.id, this.dogId, this.startedAt, this.endedAt, 
-  this.distanceInM, this.routePolyline, this.comment);
+  DogWalk({
+    required this.id, 
+    required this.dogId, 
+    required this.startedAt, 
+    this.endedAt, 
+    this.distanceInM = 0, 
+    this.routePolyline, 
+    this.comment
+  });
 }
