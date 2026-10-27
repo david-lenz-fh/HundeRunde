@@ -92,7 +92,7 @@ class HomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: ListTile(
-                  title: Text('Spaziergang am ${walk.endedAt.day}.${walk.endedAt.month}.${walk.endedAt.year}'),
+                  title: walk.endedAt==null?Text("Spaziergang läuft..."):Text('Spaziergang am ${walk.endedAt?.day}.${walk.endedAt?.month}.${walk.endedAt?.year}'),
                   subtitle: Text('Distanz: ${walk.distanceInM}m'), // 'distance' statt 'distanceInM'
                 ),
               ),

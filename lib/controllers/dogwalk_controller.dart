@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:starter_flutter/models/gps_status.dart';
 import '../models/dogwalks.dart';
 import '../services/dogwalk_service.dart';
+
+
 
 class DogWalkController extends ChangeNotifier {
 
@@ -8,6 +11,7 @@ class DogWalkController extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  GPSStatus gpsStatus = GPSStatus.idle;
 
   List<DogWalk> get lastWalks => _lastWalks;
   bool get isLoading => _isLoading;
@@ -17,6 +21,7 @@ class DogWalkController extends ChangeNotifier {
 
   DogWalkController() {
     loadWalks();
+    
   }
 
   Future<void> loadWalks() async {

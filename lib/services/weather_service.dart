@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/weather_response.dart';
@@ -9,9 +10,9 @@ class WeatherService {
   static const String weatherKey = 'weather_data';
   static const String weatherTimeKey = 'weather_timestamp';
 
-  static Future<WeatherResponse> getWeather({bool forceRefresh=false}) async {
+  static Future<WeatherResponse> getWeather(LatLng location, {bool forceRefresh=false}) async {
       if(forceRefresh){        
-        return await _fetchWeather();
+        return await _fetchWeather(location);
       }
 
       final saved = await _getSavedWeather();
@@ -19,12 +20,12 @@ class WeatherService {
         return saved;
       }
 
-      return await _fetchWeather();
+      return await _fetchWeather(location);
   }
 
-  static Future<WeatherResponse> _fetchWeather() async {
+  static Future<WeatherResponse> _fetchWeather(LatLng location) async {
     final response = await http.get(
-      Uri.parse('https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,precipitation&minutely_15=temperature_2m,precipitation&forecast_minutely_15=5')
+      Uri.parse('https://api.open-meteo.com/v1/forecast?latitude=${location.latitude.toString()}&longitude=${location.longitude.toString()}&current=temperature_2m,precipitation&minutely_15=temperature_2m,precipitation&forecast_minutely_15=5')
     );
 
     if (response.statusCode != 200) {
