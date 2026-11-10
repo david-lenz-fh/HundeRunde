@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:starter_flutter/services/dogwalk_service.dart';
@@ -106,4 +107,27 @@ class DogWalkRecorder extends ChangeNotifier {
   void saveWalk(String walkId){
     dogWalkService.finishWalk(walkId);
   }
+
+  void initUICommunication() {
+  FlutterForegroundTask.initCommunicationPort();
+  FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+}
+
+void _onReceiveTaskData(Object data) {
+  if (data is Map) {
+    _isWalking = data['walking'] as bool;
+    _distanceInM = (data['distance'] as num).toDouble();
+    
+    if (data['seconds'] != null) {
+      _secondsElapsed = data['seconds'];
+    }
+    notifyListeners();
+  }
+}
+
+@override
+void dispose() {
+  FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
+  super.dispose();
+}
 }
