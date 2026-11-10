@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:starter_flutter/services/dogwalk_service.dart';
 import 'package:starter_flutter/services/location_service.dart';
+import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 class DogWalkRecorder extends ChangeNotifier {
   
@@ -17,7 +18,7 @@ class DogWalkRecorder extends ChangeNotifier {
   Future<String>? currentWalkId;
   int _secondsElapsed = 0;
   double _distanceInM = 0.0;
-  DogWalkService dogWalkService = DogWalkService();
+  final DogWalkService _dogWalkService = DogWalkService();
 
   Timer? _timer;
   DateTime? _startTime;
@@ -31,7 +32,15 @@ class DogWalkRecorder extends ChangeNotifier {
   int get distance => _distanceInM.toInt();
   List<LatLng> get routeCoordinates => _routeCoordinates;
   
+  String getPolylineString() {
+    final mappedCoords = _routeCoordinates
+        .map((point) => [point.latitude, point.longitude])
+        .toList();
 
+    final polylineString = encodePolyline(mappedCoords);
+    
+    return polylineString;
+  }
 
   String get durationText {
     if (!_isWalking && _secondsElapsed == 0) return '00:00 min';
@@ -60,7 +69,7 @@ class DogWalkRecorder extends ChangeNotifier {
 
     final hasPermission = await LocationService.checkAndRequestPermissions();
     
-    currentWalkId = dogWalkService.startWalk("a");
+    currentWalkId = _dogWalkService.startWalk("This does not matter until App supports multiple dogs");
     _isWalking = true;
     _secondsElapsed = 0;
     _distanceInM = 0.0;
@@ -105,7 +114,7 @@ class DogWalkRecorder extends ChangeNotifier {
   }
 
   void saveWalk(String walkId){
-    dogWalkService.finishWalk(walkId);
+    _dogWalkService.finishWalk(walkId, distance, getPolylineString());
   }
 
   void initUICommunication() {

@@ -7,13 +7,16 @@ import 'package:starter_flutter/controllers/location_controller.dart';
 import 'package:starter_flutter/controllers/weather_controller.dart';
 import 'package:starter_flutter/handler/deep_link_handler.dart';
 import 'package:starter_flutter/screens/check_in_screen.dart';
+import 'package:starter_flutter/screens/login_screen.dart';
 import 'package:starter_flutter/screens/main_screen.dart';
+import 'package:starter_flutter/services/pocketbase_service.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
-  
+  await PocketBaseService.instance.init();
+
   var hasCheckedIn = prefs.getBool('hasCheckedIn') ?? false;
  
   final deepLinkHandler = DeepLinkHandler();
@@ -45,7 +48,10 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProvider(
           create: (context) => DogWalkRecorder(),
-        )
+        ),
+        ChangeNotifierProvider.value(
+          value: PocketBaseService.instance,
+        ),
       ],
       child: MaterialApp(
         title: 'Dog Walk App',
@@ -53,7 +59,18 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: const Color(0xFFF4F5F7),
         ),
-        home: showCheckIn ? const CheckInScreen() : const MainScreen(),
+        home: Consumer2<PocketBaseService, DogWalkController>(
+          builder: (context, pbService, dogwalkController, _) {
+            if (!pbService.isLoggedIn) {
+              return const LoginRegisterScreen();
+            }
+            if(dogwalkController.currentDog==null){
+              return const DogCheckInScreen();
+            }
+
+            return const MainScreen();
+          },
+        ),
       ),
     );
   }

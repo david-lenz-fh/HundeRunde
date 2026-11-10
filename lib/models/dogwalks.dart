@@ -1,9 +1,9 @@
-
 class Dog{
   String id;
   String name;
+  bool isSynced;
   
-  Dog({required this.id, required this.name});
+  Dog({required this.id, required this.name, this.isSynced=false});
 }
 class DogWalk {
   String id;
@@ -13,6 +13,7 @@ class DogWalk {
   double distanceInM;
   String? routePolyline;
   String? comment;
+  bool isSynced;
 
   DogWalk({
     required this.id, 
@@ -21,6 +22,7 @@ class DogWalk {
     this.endedAt, 
     this.distanceInM = 0, 
     this.routePolyline, 
-    this.comment
+    this.comment,
+    this.isSynced=false
   });
 }
