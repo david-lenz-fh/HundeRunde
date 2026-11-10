@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:starter_flutter/screens/dogwalk_screen.dart';
 import 'package:starter_flutter/screens/home_screen.dart';
-import 'package:starter_flutter/services/pocketbase_service.dart';
+import 'package:starter_flutter/screens/settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,13 +14,8 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
     const HomeScreen(),
-    const DogwalkScreen(), 
-    Center(child: ElevatedButton(
-        onPressed: (){
-          PocketBaseService.instance.logout();
-        },
-        child: const Text('LogOut'),
-      )),
+    const DogwalkScreen(),
+    const SettingsScreen(),
   ];
 
   @override

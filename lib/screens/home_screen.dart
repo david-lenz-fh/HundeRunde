@@ -14,7 +14,7 @@ class HomeScreen extends StatelessWidget {
     final dogWalkCtrl = context.watch<DogWalkController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
@@ -22,9 +22,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Wenn das Wetter noch lädt, zeige einen Ladekringel ansonsten die Karte
-              weatherController.isLoading 
-                  ? const Center(child: CircularProgressIndicator()) 
-                  : weatherCard(weatherController),
+              weatherCard(weatherController),
                   
               const SizedBox(height: 10),
               

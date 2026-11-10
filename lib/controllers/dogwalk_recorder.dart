@@ -116,3 +116,4 @@ class DogWalkRecorder extends ChangeNotifier {
     _dogWalkService.finishWalk(walkId, distance, getPolylineString());
   }
 }
+
