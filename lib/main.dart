@@ -6,6 +6,7 @@ import 'package:starter_flutter/controllers/dogwalk_recorder.dart';
 import 'package:starter_flutter/controllers/location_controller.dart';
 import 'package:starter_flutter/controllers/theme_controller.dart';
 import 'package:starter_flutter/controllers/weather_controller.dart';
+import 'package:starter_flutter/handler/deep_link_handler.dart';
 import 'package:starter_flutter/screens/check_in_screen.dart';
 import 'package:starter_flutter/screens/login_screen.dart';
 import 'package:starter_flutter/screens/main_screen.dart';
@@ -18,8 +19,13 @@ void main() async{
   final themeController = await ThemeController.load(prefs);
   await PocketBaseService.instance.init();
 
-  var hasCheckedIn = prefs.getBool('hasCheckedIn') ?? false;
-  hasCheckedIn = false;
+  const hasCheckedIn = false;
+ 
+  final deepLinkHandler = DeepLinkHandler();
+  deepLinkHandler.requestPermissions();
+  deepLinkHandler.initForegroundTask();
+  deepLinkHandler.initDeepLinks();
+
   runApp(MyApp(showCheckIn: !hasCheckedIn, themeController: themeController));
 }
 
