@@ -45,6 +45,13 @@ class DogWalkController extends ChangeNotifier {
     _dogwalkService.addNewDog(dogName);
   }
 
+  Future<bool> joinDog(String dogId) async{
+    final joinedDog = await _dogwalkService.joinDog(dogId);
+    if(joinedDog==null){
+      return false;
+    }
+    return true;
+  }
   @override
   void dispose() {
     _subscriptionWalk.cancel();

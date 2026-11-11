@@ -94,6 +94,15 @@ class PocketBaseService extends ChangeNotifier{
     }
     return true;
   }
+  Future<Dog?> addMemberToDog(String dogId) async{
+    final userId=client.authStore.record?.id;
+    if(userId==null){
+      return null;
+    }
+    final updatedDog=await client.collection('dogs').update(dogId, body:{'members+': userId });
+    return convertFetchedToDog(updatedDog);
+    
+  }
   Future<List<DogWalk>> fetchAllWalks() async{
     List<DogWalk> re = [];
     try{

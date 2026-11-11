@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:path/path.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:starter_flutter/services/pocketbase_service.dart';
@@ -203,6 +204,15 @@ Future<void> addNewDog(String dogName) async{
   }
   PocketBaseService.instance.postDog(dog);
 }
+Future<Dog?> joinDog(String dogId) async{
+  final db = await _database.database;
+  final joinedDog = await PocketBaseService.instance.addMemberToDog(dogId);
+  if(joinedDog==null){
+    return null;
+  }
+  await db.insert('Dogs', convertDogToLocalDb(joinedDog), conflictAlgorithm: ConflictAlgorithm.replace);
+  return joinedDog;
+}
 Future<void> pushAllUnsychronized() async{
   print("push all");
   final dogs = await getAllDogs();
@@ -265,7 +275,6 @@ Future<void> syncDog (String dogId) async{
             whereArgs: [dog.id, userId],
           );          
         }
-        print("FLIPP>");
         return;
       }
     }
