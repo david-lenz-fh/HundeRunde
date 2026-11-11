@@ -9,26 +9,23 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Hole dir die Daten aus den Controllern
     final weatherController = context.watch<WeatherController>();
     final dogWalkCtrl = context.watch<DogWalkController>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Wenn das Wetter noch lädt, zeige einen Ladekringel ansonsten die Karte
-              weatherCard(weatherController),
-                  
-              const SizedBox(height: 10),
-              
-              // Übergib den DogWalkController an die Karte
-              dogWalkOverviewCard(dogWalkCtrl),
-            ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                weatherCard(weatherController),
+                const SizedBox(height: 10),
+                dogWalkOverviewCard(dogWalkCtrl),
+              ],
+            ),
           ),
         ),
       ),
@@ -36,7 +33,6 @@ class HomeScreen extends StatelessWidget {
   }
 
   Card weatherCard(WeatherController weatherController) {
-
     final weather = weatherController.weather;
     final nextTemperatures = weather?.minutely15.entries.take(4).toList() ?? [];
 
@@ -83,15 +79,24 @@ class HomeScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 15),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Wir greifen auf lastWalks des übergebenen Controllers zu
+            const Padding(
+              padding: EdgeInsets.only(bottom: 10.0),
+              child: Text(
+                'Letzte Spaziergänge', 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
             for (var walk in dogWalkCtrl.lastWalks)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: ListTile(
-                  title: walk.endedAt==null?Text("Spaziergang läuft..."):Text('Spaziergang am ${walk.endedAt?.day}.${walk.endedAt?.month}.${walk.endedAt?.year}'),
-                  subtitle: Text('Distanz: ${walk.distanceInM}m'), // 'distance' statt 'distanceInM'
+                  contentPadding: EdgeInsets.zero,
+                  title: walk.endedAt == null 
+                      ? const Text("Spaziergang läuft...") 
+                      : Text('Spaziergang am ${walk.endedAt?.day}.${walk.endedAt?.month}.${walk.endedAt?.year}'),
+                  subtitle: Text('Distanz: ${walk.distanceInM}m'),
                 ),
               ),
           ],

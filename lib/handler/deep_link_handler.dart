@@ -1,6 +1,8 @@
 import 'package:app_links/app_links.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:starter_flutter/controllers/navigation_controller.dart';
 import 'package:starter_flutter/handler/dogwalk_task_handler.dart';
+import 'package:starter_flutter/services/location_service.dart';
 
 class DeepLinkHandler {
   late AppLinks _appLinks;
@@ -43,12 +45,24 @@ class DeepLinkHandler {
 
   void _handleDeepLink(Uri uri) async {
     if (uri.scheme == 'hunderunde' && uri.host == 'start-walk') {
-      
-      if (await FlutterForegroundTask.isRunningService) return;
+
+      NavigationController().setTab(1);
+      if (await FlutterForegroundTask.isRunningService) {
+        FlutterForegroundTask.sendDataToTask({'command': 'stop'});
+        return;
+      }
+
+      final hasLocationPermission =
+          await LocationService.checkAndRequestPermissions();
+      if (!hasLocationPermission){return;}
 
       await FlutterForegroundTask.startService(
+        serviceTypes: const [ForegroundServiceTypes.location],
         notificationTitle: 'Hunde-Runde gestartet',
         notificationText: 'GPS wird initialisiert...',
+        notificationButtons: [
+          const NotificationButton(id: 'stop_walk', text: 'Beenden'),
+        ],
         callback: startCallback,
       );
     }

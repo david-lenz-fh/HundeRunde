@@ -16,28 +16,28 @@ class DogWalkController extends ChangeNotifier {
 
   List<DogWalk> get lastWalks => _lastWalks;
   Dog? get currentDog => _currentDog;
+  bool get dogTriedToInitialize => _dogInitialized;
 
+  bool _dogInitialized=false;
   final DogWalkService _dogwalkService = DogWalkService();
   late final StreamSubscription _subscriptionWalk;
   late final StreamSubscription _subscriptionDog;
   
   DogWalkController(){
-      print(_currentDog);
     _subscriptionWalk = _dogwalkService.walksStream.listen((walks) {
       _lastWalks = walks;
       notifyListeners();
     });
     _subscriptionDog = _dogwalkService.dogStream.listen((dogs) {
       _currentDog = dogs.firstOrNull;
-      print(_currentDog);
       notifyListeners();
     });
-    print(_currentDog);
     startUp();
   }
   void startUp() async{    
     await _dogwalkService.pushAllUnsychronized();
     await _dogwalkService.fetchAndSyncAllDogs();
+    _dogInitialized = true;
     _dogwalkService.fetchAndSyncAllWalks();
   }
 

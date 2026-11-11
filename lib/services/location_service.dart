@@ -16,6 +16,16 @@ class LocationService {
     
     return true;
   }
+  static Future<bool> checkPermissions() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) return false;    
+    if (permission == LocationPermission.deniedForever) return false;
+    
+    return true;
+  }
 
   static Stream<Position> getLiveLocationStream() {
     return Geolocator.getPositionStream(

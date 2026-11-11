@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:starter_flutter/controllers/dogwalk_controller.dart';
 import 'package:starter_flutter/controllers/dogwalk_recorder.dart';
 import 'package:starter_flutter/controllers/location_controller.dart';
+import 'package:starter_flutter/controllers/navigation_controller.dart';
 import 'package:starter_flutter/controllers/theme_controller.dart';
 import 'package:starter_flutter/controllers/weather_controller.dart';
 import 'package:starter_flutter/handler/deep_link_handler.dart';
@@ -18,21 +19,18 @@ void main() async{
   final prefs = await SharedPreferences.getInstance();
   final themeController = await ThemeController.load(prefs);
   await PocketBaseService.instance.init();
-
-  const hasCheckedIn = false;
  
   final deepLinkHandler = DeepLinkHandler();
   deepLinkHandler.requestPermissions();
   deepLinkHandler.initForegroundTask();
   deepLinkHandler.initDeepLinks();
-
-  runApp(MyApp(showCheckIn: !hasCheckedIn, themeController: themeController));
+  DogWalkRecorder().initUICommunication();
+  runApp(MyApp( themeController: themeController));
 }
 
 class MyApp extends StatelessWidget {
-  final bool showCheckIn;
   final ThemeController themeController;
-  const MyApp({super.key, required this.showCheckIn, required this.themeController});
+  const MyApp({super.key, required this.themeController});
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +56,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(
           value: themeController,
         ),
+        ChangeNotifierProvider.value(
+          value: NavigationController(),
+        ),
       ],
       child: Consumer<ThemeController>(
         builder: (context, themeController, _) => MaterialApp(
@@ -76,7 +77,7 @@ class MyApp extends StatelessWidget {
               if (!pbService.isLoggedIn) {
                 return const LoginRegisterScreen();
               }
-              if(dogwalkController.currentDog==null){
+              if(dogwalkController.currentDog==null && dogwalkController.dogTriedToInitialize){
                 return const DogCheckInScreen();
               }
 

@@ -17,6 +17,7 @@ class DogWalkRecorder extends ChangeNotifier {
   bool _isWalking = false;
   Future<String>? currentWalkId;
   int _secondsElapsed = 0;
+  int get secondsElapsed => _secondsElapsed;
   double _distanceInM = 0.0;
   final DogWalkService _dogWalkService = DogWalkService();
 
@@ -56,6 +57,7 @@ class DogWalkRecorder extends ChangeNotifier {
 
   void toggleWalk() {
     if (_isWalking) {
+      stopWalkFromUI();
       stopWalk();
     } else {
       startWalk();
@@ -63,13 +65,18 @@ class DogWalkRecorder extends ChangeNotifier {
   }
 
   Future<void> startWalk() async {
-
-    //zur Sicherheit
-    stopWalk();
-
     final hasPermission = await LocationService.checkAndRequestPermissions();
+    if (!hasPermission || _isWalking) {
+      return;
+    }
     
     currentWalkId = _dogWalkService.startWalk("This does not matter until App supports multiple dogs");
+    final walkId = await currentWalkId!;
+    if (walkId.isEmpty) {
+      currentWalkId = null;
+      return;
+    }
+
     _isWalking = true;
     _secondsElapsed = 0;
     _distanceInM = 0.0;
@@ -84,9 +91,6 @@ class DogWalkRecorder extends ChangeNotifier {
     
 
 
-    if (!hasPermission) {
-      return;
-    }
     _positionStream = LocationService.getLiveLocationStream().listen((Position newPosition) {
     _routeCoordinates.add(LatLng(newPosition.latitude, newPosition.longitude));
 
@@ -101,20 +105,22 @@ class DogWalkRecorder extends ChangeNotifier {
     notifyListeners();
   }
 
-  void stopWalk() async{
+  Future<void> stopWalk() async {
+    if (!_isWalking && currentWalkId == null) return;
     _timer?.cancel();
-    _positionStream?.cancel();
+    await _positionStream?.cancel();
+    _positionStream = null;
     _isWalking = false;
 
-    final walkId=await currentWalkId;
-    if(walkId!=null){
-      saveWalk(walkId);
+    final walkIdFuture = currentWalkId;
+    currentWalkId = null;
+    if (walkIdFuture != null) {
+      final walkId = await walkIdFuture;
+      if (walkId.isNotEmpty) {
+        await _dogWalkService.finishWalk(walkId, distance, getPolylineString());
+      }
     }
     notifyListeners();
-  }
-
-  void saveWalk(String walkId){
-    _dogWalkService.finishWalk(walkId, distance, getPolylineString());
   }
 
   void initUICommunication() {
@@ -127,13 +133,15 @@ void _onReceiveTaskData(Object data) {
     _isWalking = data['walking'] as bool;
     _distanceInM = (data['distance'] as num).toDouble();
     
-    if (data['seconds'] != null) {
-      _secondsElapsed = data['seconds'];
+    if (data['duration'] != null) {
+      _secondsElapsed = data['duration'];
     }
     notifyListeners();
   }
 }
-
+void stopWalkFromUI() {
+  FlutterForegroundTask.sendDataToTask({'command': 'stop'});
+}
 @override
 void dispose() {
   FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);

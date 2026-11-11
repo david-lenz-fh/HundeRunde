@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:starter_flutter/controllers/dogwalk_recorder.dart';
+import 'package:starter_flutter/services/pocketbase_service.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -8,17 +11,23 @@ void startCallback() {
 }
 
 class DogWalkTaskHandler extends TaskHandler {
-  final recorder = DogWalkRecorder(); 
+  late final DogWalkRecorder recorder;
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
+    await PocketBaseService.instance.init();
+    recorder = DogWalkRecorder();
     await recorder.startWalk();
+    if (!recorder.isWalking) {
+      await FlutterForegroundTask.stopService();
+    }
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    recorder.stopWalk();
+    await recorder.stopWalk();
   }
 
   @override
@@ -31,8 +40,35 @@ class DogWalkTaskHandler extends TaskHandler {
     FlutterForegroundTask.sendDataToMain({
       'walking': true,
       'distance': recorder.distance,
-      'duration': recorder.durationText,
+      'duration': recorder.secondsElapsed,
     });
   }
-  
+
+  @override
+  void onNotificationButtonPressed(String id) async{
+    if (id == 'stop_walk') {
+      await recorder.stopWalk();
+      FlutterForegroundTask.sendDataToMain({
+      'walking': false,
+      'distance': recorder.distance,
+      'duration': recorder.secondsElapsed,
+    });
+      await FlutterForegroundTask.stopService();
+    }
+  }
+  @override
+  void onReceiveData(Object data) {
+    if (data is Map && data['command'] == 'stop') {      
+      stopWalk();
+    }
+  }
+  void stopWalk(){
+    recorder.stopWalk();
+    FlutterForegroundTask.sendDataToMain({
+      'walking': false,
+      'distance': recorder.distance,
+      'duration': recorder.secondsElapsed, 
+    });
+    FlutterForegroundTask.stopService();
+  }
 }
